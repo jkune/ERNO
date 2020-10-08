@@ -1,7 +1,7 @@
 import { aes128 } from './aes128/index.js';
 import { LZString } from './lzstring/index.js';
 import { TURNS } from '../../../util/index.js';
-import { GAN } from '../../../3d/skins/gan/index;'
+import * as GAN from '../../../3d/skins/gan/index.js'
 
 const skin = GAN;
 const turns = [
@@ -49,7 +49,7 @@ async function getServices(server) {
         name: '',
         version: '',
         hardware: '',
-
+        skin: skin,
     }
 
     let meta = await server.getPrimaryService(GAN_SERVICE_UUID_META);
@@ -84,7 +84,7 @@ async function getServices(server) {
         },
         getNewTwists: async () => {
             let value = await cubeTwistCharacteristic.readValue()
-            let decodedValue = decode(value);
+            let decodedValue = decode(value, _decoder);
             let dataView = new DataView(new Uint8Array(decodedValue).buffer);
             let count = dataView.getUint8(12);
             let result = [];
@@ -103,6 +103,14 @@ async function getServices(server) {
                     }
                 }
             }
+
+            /* // encoders
+            var sides = "URFDLB";
+            htm = "";
+            for (var i = 0; i < 6; i++)
+            {
+                htm += sides[i] + ": " + value.getUint8(i + 6) + "<br />";
+            }*/
 
             return result;
         }
@@ -155,11 +163,8 @@ function getKey(version, hardwareValue) {
     return key;
 }
 
-
-
 export {
     filters,
     optionalServices,
     getServices,
-    skin,
 }

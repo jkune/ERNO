@@ -10,10 +10,13 @@ class ERNO {
         this.bluetooth = new Bluetooth();
         this.model = new Model(this.options.size);
 
-        this.bluetooth.on('connect',  this.connectCallBack);
+        this.connectedCallbackBinded = this.connectCallback.bind(this);
+        this.moveCallbackBinded = this.moveCallback.bind(this);
+
+
+        this.bluetooth.on('connect',  this.connectedCallbackBinded);
         this.bluetooth.on('disconnect', () => {
-            this.bluetooth.off('move', this.moveCallBack);
-            this.bluetooth.off('connect', this.connectCallBack);
+            this.bluetooth.off('move', this.moveCallbackBinded);
         });
     }
 
@@ -21,11 +24,13 @@ class ERNO {
         return ALGORITHMS;
     }
 
-    connectCallBack() {
-        this.bluetooth.on('move', this.moveCallBack);
+    connectCallback() {
+        console.log('CONNECT CALLBACK');
+        this.bluetooth.on('move', this.moveCallbackBinded);
     }
 
-    moveCallBack(move) {
+    moveCallback(move) {
+        console.log('MOVE CALLBACK');
         this.doTwist(move);
     }
 

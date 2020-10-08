@@ -60,6 +60,8 @@ class Bluetooth {
      * Connects to the device throught the Bluetooth system
      */
     async connect() {
+        if (this.isConnected()) return this.triggerHandler('error', 'Already connected');
+
         try {
             this._device = await window.navigator.bluetooth.requestDevice({
                 filters: CUBES.map(cube => cube.filters),
@@ -74,11 +76,13 @@ class Bluetooth {
                 return server.device.name.startsWith(cube.filters.namePrefix);
             })
 
-            this.services = await cube.getServices()
+            this.services = await cube.getServices(server);
+
             this._device.addEventListener('gattserverdisconnected', this.disconnectHandlerBlinded);
-            await this.refreshBatteryLevel();
-            this.triggerHandler('connect', this.services.getInfo(), cube.skin);
-            this.loopRead();
+            this.triggerHandler('connect', this.services.getInfo());
+            
+            this.loopBatteryRead();
+            this.loopMoveRead();
         } catch (ex) {
             this._device = null;
             this.triggerHandler('error', ex);
@@ -109,26 +113,42 @@ class Bluetooth {
     }
 
     /**
-     * Gan cube characteristic loop poll
+     * Gan cube move characteristic loop poll
      */
-    async loopRead() {
+    async loopMoveRead() {
         if (!this._device) {
             return;
         }
 
-        var twistPromise = this.services.getNewTwists().then((twists) => {
-            for (var i = 0; i < twists.length; i++) {
-                this.triggerHandler('move', twists[i]);
-            }
-        });
-
         try {
-            await Promise.all([this.refreshBatteryLevel, twistPromise]);
+            await this.services.getNewTwists().then((twists) => {
+                for (var i = 0; i < twists.length; i++) {
+                    this.triggerHandler('move', twists[i]);
+                }
+            });
         } catch (ex) {
             this.triggerHandler('error', ex)
         }
 
-        await this.loopRead();
+        await this.loopMoveRead();
+    }
+
+    /**
+     * Gan cube battery characteristic loop poll
+     */
+    async loopBatteryRead() {
+        if (!this._device) {
+            return;
+        }
+
+        try {
+            await this.refreshBatteryLevel();
+        } catch (ex) {
+            this.triggerHandler('error', ex)
+        }
+
+        await new Promise((resolve) => {window.setTimeout(resolve,60000)});
+        await this.loopBatteryRead();
     }
 
     /**
