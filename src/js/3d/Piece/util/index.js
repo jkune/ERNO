@@ -1,7 +1,7 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 const cache = {}
-const MODELS_FOLDER = 'assets/model/';
+const MODELS_FOLDER = '/assets/model/';
 
 async function loadModel(url) {
     const file = MODELS_FOLDER + url;

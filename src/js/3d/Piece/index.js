@@ -112,7 +112,7 @@ class Piece {
 
     makeLogo(args) {
         const geometry = new THREE.PlaneBufferGeometry(args.size, args.size, 1, 1);
-        const threeTexture = new THREE.TextureLoader().load('assets/img/' + this.options.skin.logo);
+        const threeTexture = new THREE.TextureLoader().load('/assets/img/' + this.options.skin.logo);
         const material = new THREE.MeshBasicMaterial({
             map: threeTexture,
             transparent: true,
