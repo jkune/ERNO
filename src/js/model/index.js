@@ -1,6 +1,7 @@
-import { RELATIONS, ORIENTATIONS, CUBEROTATIONMAPS, rotateFaceCW, rotateFaceCCW, rotateFace180, getOppositeFace, getFaceAdjacentPositions } from './util/index.js';
+import { ORIENTATIONS, CUBEROTATIONMAPS, rotateFaceCW, rotateFaceCCW, rotateFace180 } from './util/index.js';
 import { TURNS, ROTATIONS, FACES, DIRECTIONS } from '../util/index.js';
 import { CubeModel } from './cube';
+import methods from './methods'
 import * as _ from 'underscore';
 
 class Model {
@@ -9,14 +10,31 @@ class Model {
         this._cubeModel = new CubeModel(this._size);
         this._currentOrientation = 0;
         this._moves = [];
+        this._method = null;
+        this._solution = null;
         this._isScrambling = true;
-        this._baseFace = null;
-        this._isSolved = false;
-        this._isFaceDone = false;
-        this._isCrossDone = false;
-        this._isF2LDone = false;
-        this._isOLLDone = false;
-        this._isF2LPairDone = [false, false, false, false];
+    }
+
+    setScrambling(bol) {
+        this._isScrambling = bol;
+    }
+
+    initMethod(args) {
+        this._method = methods.find(e => e.id === args.methodId);
+        this._solution = this._method.init({ 
+            size: this._size, 
+            step: args.stepId, 
+            callback: args.callback, 
+            baseFace: args.baseFace, 
+            faces: this._cubeModel.getFacesArray() 
+        });
+    }
+
+    reset(size = this._size) {
+        this._cubeModel.reset(size);
+        this._currentOrientation = 0;
+        this._moves = [];
+        this._isScrambling = true;
     }
 
     doTwists(twists) {
@@ -48,6 +66,11 @@ class Model {
             myTwist.type = ROTATIONS.TYPE;
             this.rotateCube(twist);
         }
+
+        this._moves.push(twist);
+
+        if (!this._isScrambling && this._solution) 
+            this._solution.onMove(twist, this._cubeModel.getFacesArray());
 
         return myTwist;
     }
@@ -100,17 +123,6 @@ class Model {
         }
     }
 
-    reset() {
-        this._isScrambling = false;
-        this._baseFace = null;
-        this._isSolved = false;
-        this._isFaceDone = false;
-        this._isCrossDone = false;
-        this._isF2LDone = false;
-        this._isOLLDone = false;
-        this._isF2LPairDone = [false, false, false, false];
-    }
-
     getFacesArray() {
         var faces = this._cubeModel.getFacesArray();
         var modifiedFaces = [];
@@ -154,167 +166,48 @@ class Model {
         var faceToRotate = orientationPairs[args.face][0];
 
         this._cubeModel.rotateFace(Object.assign({}, args, {face: faceToRotate}));
-        if (!this._isScrambling) this.checkSolve();
+        // if (!this._isScrambling) this.checkSolve();
 
         return faceToRotate;
     }
 
-    isSolved() {
-        const faces = this._cubeModel.getFacesArray();
+    // isSolved() {
+    //     const faces = this._cubeModel.getFacesArray();
 
-        return faces.every((face) => {
-            return face.every((position, i, array) => {
-                return position === array[0];
-            });
-        });
-    }
+    //     return faces.every((face) => {
+    //         return face.every((position, i, array) => {
+    //             return position === array[0];
+    //         });
+    //     });
+    // }
 
-    isOLLDone() {
-        const faces = this._cubeModel.getFacesArray();
-        const ollFace = getOppositeFace(this._baseFace);
+    // isFaceDone() {
+    //     const faces = this._cubeModel.getFacesArray();
 
-        return faces[ollFace].every((value) => {
-            return value === faces[ollFace][0];
-        });
-    }
+    //     return faces.some((face, color) => {
+    //         const sideRelations = RELATIONS[this._size][color];
+    //         const faceDone = face.every((value) => {
+    //             return value === face[0];
+    //         });
+    //         const sideDone = sideRelations.every((relationPair) => {
+    //             const faceColor = relationPair[0]
+    //             const facePositions = relationPair[1];
+    //             const firstPositionColor = faces[faceColor][facePositions[0]];
+    //             const centerColor = faces[faceColor][Math.round((faces[faceColor].length - 1) / 2)]
+    //             const faceMainColor = this._size % 2 === 0 ? firstPositionColor : centerColor;
 
-    isPLLDone() {
-        const faces = this._cubeModel.getFacesArray();
-        const ollFace = getOppositeFace(this._baseFace);
-        const sideRelations = RELATIONS[this._size][ollFace];
+    //             return facePositions.every((facePosition) => {
+    //                 return faces[faceColor][facePosition] === faceMainColor;
+    //             });;
+    //         })
 
-        return sideRelations.every((relationPair) => {
-            const faceColor = relationPair[0]
-            const facePositions = relationPair[1];
-            const firstPositionColor = faces[faceColor][facePositions[0]];
+    //         if (!this._baseFace && faceDone && sideDone) {
+    //             this._baseFace = color;
+    //         }
 
-            return facePositions.every((facePosition) => {
-                return faces[faceColor][facePosition] === firstPositionColor;
-            });;
-        })
-    }
-
-    checkF2LPairs() {
-        const baseFaceSideRelations = RELATIONS[this._size][this._baseFace];
-        const faces = this._cubeModel.getFacesArray();
-        const pairsDone = [
-            [false, false],
-            [false, false],
-            [false, false],
-            [false, false],
-        ];
-
-        baseFaceSideRelations.forEach((relationPair, index) => {
-            const faceColor = relationPair[0]
-            const facePositions = [relationPair[1][0], relationPair[1][relationPair[1].length - 1]];
-            const f2LFacePositions = getFaceAdjacentPositions(facePositions, this._size);
-            const nextIndex = (index + 1) % 4; // revisar
-            const indexes = [index, nextIndex];
-
-            f2LFacePositions.forEach((position, k) => {
-                const pos = f2LFacePositions.length - 1 - k;
-                pairsDone[indexes[k]][pos] = faces[faceColor][position] === faceColor;
-            });
-        });
-
-        pairsDone.forEach((pairs, index) => {
-            this._isF2LPairDone[index] = pairs.every(e => e);
-        });
-
-        this._isF2LDone = this._isF2LPairDone.every(e => e);
-    }
-
-    isF2LDone() {
-        const faces = this._cubeModel.getFacesArray();
-        const ollFace = getOppositeFace(this._baseFace);
-        const ollFaceSideRelations = RELATIONS[this._size][ollFace];
-
-        return ollFaceSideRelations.every((relationPair) => {
-            const faceColor = relationPair[0]
-            const facePositions = relationPair[1];
-
-            return faces[faceColor].every((value, index) => {
-                return facePositions.includes(index) || value === faceColor;
-            });
-        });
-    }
-
-    isFaceDone() {
-        const faces = this._cubeModel.getFacesArray();
-
-        return faces.some((face, color) => {
-            const sideRelations = RELATIONS[this._size][color];
-            const faceDone = face.every((value) => {
-                return value === face[0];
-            });
-            const sideDone = sideRelations.every((relationPair) => {
-                const faceColor = relationPair[0]
-                const facePositions = relationPair[1];
-                const firstPositionColor = faces[faceColor][facePositions[0]];
-                const centerColor = faces[faceColor][Math.round((faces[faceColor].length - 1) / 2)]
-                const faceMainColor = this._size % 2 === 0 ? firstPositionColor : centerColor;
-
-                return facePositions.every((facePosition) => {
-                    return faces[faceColor][facePosition] === faceMainColor;
-                });;
-            })
-
-            if (!this._baseFace && faceDone && sideDone) {
-                this._baseFace = color;
-            }
-
-            return faceDone && sideDone;
-        });
-    }
-
-    isCrossDone() {
-        const faces = this._cubeModel.getFacesArray();
-
-        return faces.some((face, color) => {
-            const sideRelations = RELATIONS[this._size][color];
-            const faceCross = face.every((value, position) => {
-                const odd = position % 2 == 0;
-
-                return odd || value === color;
-            });
-            const sideCross = sideRelations.every((relationPair) => {
-                const faceColor = relationPair[0]
-                const facePositions = relationPair[1];
-                const facePosition = facePositions[(facePositions.length - 1) / 2];
-
-                return faces[faceColor][facePosition] === faceColor;
-            })
-
-            if (!this._baseFace && faceCross && sideCross) {
-                this._baseFace = color;
-            }
-
-            return faceCross && sideCross;
-        });
-    }
-
-    checkSolve(bool) {
-        this._isCrossDone = this.isCrossDone();
-        this._isFaceDone = this.isFaceDone();
-        this._isCrossDone && this.checkF2LPairs();
-        this._isOLLDone = this._isF2LDone && this.isOLLDone();
-        this._isPLLDone = this._isOLLDone && this.isPLLDone();
-        this._isSolved = this._isOLLDone && this.isSolved();
-
-        if (bool) {
-            console.log('Base face: ', this._baseFace);
-            console.log('Cross: ', this._isCrossDone);
-            console.log('Face: ', this._isFaceDone);
-            console.log('F2L-1: ', this._isF2LPairDone[0]);
-            console.log('F2L-2: ', this._isF2LPairDone[1]);
-            console.log('F2L-3: ', this._isF2LPairDone[2]);
-            console.log('F2L-4: ', this._isF2LPairDone[3]);
-            console.log('F2L: ', this._isF2LDone);
-            console.log('OLL: ', this._isOLLDone);
-            console.log('PLL: ', this._isSolved);
-            console.log('Solved: ', this._isSolved);
-        }
-    }
+    //         return faceDone && sideDone;
+    //     });
+    // }
 }
 
 export { Model }

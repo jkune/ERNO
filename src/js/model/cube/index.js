@@ -36,6 +36,15 @@ class CubeModel {
         this._moves = [];
     }
 
+    reset(size) {
+        const faces = getFaceBySize(size);
+
+        this._faces = _.map(faces, function(face) {
+            return _.clone(face)
+        });
+        this.moves = [];
+    }
+
     getFacesArray() {
         return _.clone(this._faces);
     }
