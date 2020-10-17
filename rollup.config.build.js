@@ -9,7 +9,7 @@ export default {
   ],
   output: {
     format: 'cjs',
-    file: '../server/public/assets/js/ERNO.js',
+    file: '../react-app/public/assets/js/ERNO.js',
     indent: '\t',
     sourcemap: false,
   },
