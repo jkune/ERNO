@@ -12,12 +12,13 @@ const sizes = {
     4: four,
 }
 const colors = {
-    U: 0xffffff,
-    B: 0x0085f7,
-    L: 0xffa300,
-    R: 0xff1400,
-    D: 0xfdff00,
-    F: 0x00c700
+    U: 'ffffff',
+    B: '0085f7',
+    L: 'ffa300',
+    R: 'ff1400',
+    D: 'fdff00',
+    F: '00c700',
+    P: '08101a',
 }
 
 export {

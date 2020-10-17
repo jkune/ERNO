@@ -16,9 +16,18 @@ class Cube {
 		this.holder.add(this.animator);
 		this.animator.add(this.object);
 		this.game.world.scene.add(this.holder);
+		this.resolvePromise = null;
+	}
+
+	initDeferred() {
+		this.game.isInitiated = new Promise((res, rej) => {
+			this.resolvePromise = res;
+		});	
 	}
 
 	async init() {
+		this.initDeferred();
+
 		this.object.children = [];
 		this.object.userData = {
 			stickers: [],
@@ -61,6 +70,7 @@ class Cube {
 		});
 
 		this.updateSkin(this.skin.colors);
+		this.resolvePromise();
 	}
 
 	async resize(newSize) {
@@ -142,12 +152,12 @@ class Cube {
 	updateSkin(colors) {
 		this.object.userData.stickers.forEach((sticker) => {
 			sticker.visible = !this.game.options.stickerless;
-			sticker.material.color.setHex(colors[sticker.name]);
+			sticker.material.color.setStyle('#' + colors[sticker.name]);
 		});
 		this.object.userData.pieces.forEach((piece) => {
 			const pieceColor = this.game.options.stickerless ? colors[piece.userData.face] : colors.P;
 
-			piece.material.color.setHex(pieceColor);
+			piece.material.color.setStyle('#' + pieceColor);
 		});
 	}
 }
