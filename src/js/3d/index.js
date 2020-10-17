@@ -15,16 +15,22 @@ class Cube3D {
 		this.cube.init();
 	}
 
+	unrender(key) {
+		this.world.unrender(key);
+	}
+
 	render(element, options = {}) {
-		const render = this.world.render(element);
+		const render = this.world.render(element, options.key);
 
 		if (options.drag) {
-			// this.controls.initDraggable(render);
-			const orbitControl = new OrbitControls(this.world.camera, render);
+			this.controls.initDraggable(render);
+			// const orbitControl = new OrbitControls(this.world.camera, render);
 
-			orbitControl.enablePan = false;
+			// orbitControl.enablePan = false;
 			//orbitControl.enableZoom = false;
 		}
+
+		return render.domElement;
 	}
 }
 

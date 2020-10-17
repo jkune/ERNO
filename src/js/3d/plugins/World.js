@@ -12,6 +12,7 @@ class World extends Animation {
 		this.scene = new THREE.Scene();
 		this.camera = new THREE.PerspectiveCamera(2, 1, 0.1, 10000);
 
+		this.unrenderByKey = {};
 		this.rendersByKey = {};
 		this.stage = { width: 2, height: 3 };
 		this.fov = 10;
@@ -22,20 +23,26 @@ class World extends Animation {
 	}
 
 	unrender(key) {
+		this.unrenderByKey[key] = this.rendersByKey[key];
 		delete this.rendersByKey[key];
 	}
 
-	render(element) {
-		const render = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-		const key = '_' + Math.random().toString(36).substr(2, 9);
+	render(element, key) {
+		const render = this.unrenderByKey[key] || this.initRender();
 
 		render.setPixelRatio(window.devicePixelRatio);
 		element.appendChild(render.domElement);
 
 		this.rendersByKey[key] = render;
+		delete this.unrenderByKey[key]
+
 		this.resize(render);
 
 		return render.domElement;
+	}
+
+	initRender() {
+		return new THREE.WebGLRenderer({ antialias: true, alpha: true });
 	}
 
 	update() {
