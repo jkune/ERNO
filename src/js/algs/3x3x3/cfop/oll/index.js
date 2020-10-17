@@ -1,4 +1,7 @@
-const name = 'OLL';
+import { OLL, OLL_name } from '../../../../util/methods/index.js';
+
+const name = OLL_name;
+const key = OLL;
 
 const groups = [
     {
@@ -137,8 +140,8 @@ const list = [
         id: 7,
         algs: [
             {
-                notation: "r U' R U' R' U R U' R' U2 r",
-                label: "(r U') (R U') (R' U) (R U') (R' U2 r)",
+                notation: "r' U' R U' R' U R U' R' U2 r",
+                label: "(r' U') (R U') (R' U) (R U') (R' U2 r)",
             }
         ]
     },
@@ -551,8 +554,8 @@ const list = [
         id: 53,
         algs: [
             {
-                notation: "R U2 R2 F R F' U2 R' F R F",
-                label: "(R U2) (R2' F R F') U2 (R' F R F)",
+                notation: "R U2 R2 F R F' U2 R' F R F'",
+                label: "(R U2) (R2' F R F') U2' (R' F R F')",
             }
         ]
     },
@@ -569,7 +572,7 @@ const list = [
         id: 55,
         algs: [
             {
-                notation: "r' R U R U R' U' r x R2 U R U'",
+                notation: "r' R U R U R' U' r x R2 U R U' x'",
                 label: "r' (R U) (R U R' U' r) x (R2' U) (R U')",
             }
         ]
@@ -578,8 +581,8 @@ const list = [
         id: 56,
         algs: [
             {
-                notation: "F R U R' U y' R' U2 R' F R F",
-                label: "F (R U R' U) y' (R' U2) (R' F R F)",
+                notation: "F R U R' U y' R' U2 R' F R F'",
+                label: "F (R U R' U) y' (R' U2) (R' F R F')",
             }
         ]
     },
@@ -606,7 +609,7 @@ const algsByGroup = groups.map((group) => {
     }
 })
 
-const getVisual = (alg, scheme) => {
+const getVisuals = (item, scheme = {}) => {
     const URL = 'http://cube.rider.biz/visualcube.php';
     const query = {
         fmt: 'svg',
@@ -615,18 +618,24 @@ const getVisual = (alg, scheme) => {
         view: 'plan',
         stage: 'oll',
         bg: 't',
-        case: alg.notation.split(' ').join(''),
-        sch: Object.values(scheme).join()
+        cc: 'black',
+        case: item.algs[0].notation.split(' ').join(''),
+        sch: Object.keys(scheme).sort((a, b) => {
+            const order = ['U', 'R', 'F', 'D', 'L', 'B'];
+
+            return order.indexOf(a) - order.indexOf(b);
+        }).map(e => scheme[e]).join()
     };
 
-    return URL + '?' + Object.keys(query).map((key) => {
+    return [URL + '?' + Object.keys(query).map((key) => {
         return key + '=' + query[key];
-    }).join('&');
+    }).join('&')];
 }   
 
 export {
     name,
-    algsByGroup as GROUPS,
-    list as LIST,
-    getVisual
+    key,
+    algsByGroup as groups,
+    list,
+    getVisuals
 }

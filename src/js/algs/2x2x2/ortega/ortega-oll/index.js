@@ -1,3 +1,5 @@
+import { Ortega_OLL, Ortega_OLL_name } from '../../../../util/methods/index.js';
+
 const groups = [
     {
         id: 1,
@@ -94,7 +96,7 @@ const algsByGroup = groups.map((group) => {
     }
 })
 
-const getVisual = (alg, scheme) => {
+const getVisuals = (item, scheme = {}) => {
     const URL = 'http://cube.rider.biz/visualcube.php';
     const query = {
         fmt: 'svg',
@@ -103,17 +105,27 @@ const getVisual = (alg, scheme) => {
         view: 'plan',
         stage: 'oll',
         bg: 't',
-        case: alg.notation.split(' ').join(''),
-        sch: Object.values(scheme).join()
+        cc: 'black',
+        case: item.algs[0].notation.split(' ').join(''),
+        sch: Object.keys(scheme).sort((a, b) => {
+            const order = ['U', 'R', 'F', 'D', 'L', 'B'];
+
+            return order.indexOf(a) - order.indexOf(b);
+        }).map(e => scheme[e]).join()
     };
 
-    return URL + '?' + Object.keys(query).map((key) => {
-        return key + '=' + query[key];
-    }).join('&');
+    return [URL + '?' + Object.keys(query).map((key) => {
+            return key + '=' + query[key];
+        }).join('&')];
 }   
 
+const name = Ortega_OLL_name;
+const key = Ortega_OLL;
+
 export {
-    algsByGroup as GROUPS,
-    list as LIST,
-    getVisual
+    name,
+    key,
+    algsByGroup as groups,
+    list,
+    getVisuals
 }

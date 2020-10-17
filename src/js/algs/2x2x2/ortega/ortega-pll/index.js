@@ -1,3 +1,5 @@
+import { Ortega_PLL, Ortega_PLL_name } from '../../../../util/methods/index.js';
+
 const groups = [
     {
         id: 1,
@@ -14,17 +16,17 @@ const groups = [
 const list = [
     {
         id: 1,
-        arrows: ['U0U2-blue,U2U0-blue'],
+        arrows: ['U0U2-blue,U2U0-blue', ''],
         algs: [
             {
-                notation: "2R 2F R U R' 2F R F' R U",
-                label: "(2R' 2F R) U (R' 2F R) (F' R) U",
+                notation: "R2 F2 R U R' F2 R F' R U",
+                label: "(R2' F2 R) U (R' F2 R) (F' R) U",
             }
         ]
     },
     {
         id: 2,
-        arrows: ['U0U3-blue,U3U0-blue'],
+        arrows: ['U0U3-blue,U3U0-blue', ''],
         algs: [
             {
                 notation: "R U' R' U' F2 U' R U R' D R2",
@@ -76,7 +78,8 @@ const algsByGroup = groups.map((group) => {
     }
 })
 
-const getVisual = (alg, scheme) => {
+
+const getVisuals = (item, scheme = {}) => {
     const URL = 'http://cube.rider.biz/visualcube.php';
     const query = {
         fmt: 'svg',
@@ -85,17 +88,35 @@ const getVisual = (alg, scheme) => {
         view: 'plan',
         stage: 'pll',
         bg: 't',
-        case: alg.notation.split(' ').join(''),
-        sch: Object.values(scheme).join()
+        cc: 'black',
+        case: item.algs[0].notation.split(' ').join(''),
+        sch: Object.keys(scheme).sort((a, b) => {
+            const order = ['U', 'R', 'F', 'D', 'L', 'B'];
+
+            return order.indexOf(a) - order.indexOf(b);
+        }).map(e => scheme[e]).join()
     };
 
-    return URL + '?' + Object.keys(query).map((key) => {
-        return key + '=' + query[key];
-    }).join('&');
-}   
+    return item.arrows.map((arrows, index) => {
+        const stage = index === 1 ? 'oll' : 'pll';
+        const query2 = Object.assign({}, query, {arw: arrows, stage: stage});
+        const prefix = index === 1 ? 'z2' : '';
+
+        return URL + '?' + Object.keys(query2).map((key) => {
+            const value = key === 'case' ? prefix + query2[key] : query2[key];
+
+            return key + '=' + value;
+        }).join('&');
+    });
+}  
+
+const name = Ortega_PLL_name;
+const key = Ortega_PLL;
 
 export {
-    algsByGroup as GROUPS,
-    list as LIST,
-    getVisual
+    name,
+    key,
+    algsByGroup as groups,
+    list,
+    getVisuals
 }

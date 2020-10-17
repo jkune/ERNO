@@ -6,9 +6,4 @@ const list = [
     three,
 ];
 
-const sizes = {
-    2: two,
-    3: three,
-}
-
-export { list, sizes }
+export default list;

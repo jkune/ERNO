@@ -1,5 +1,7 @@
-const name = 'PLL';
+import { PLL, PLL_name } from '../../../../util/methods/index.js'
 
+const name = PLL_name;
+const key = PLL;
 const groups = [
     {
         id: 1,
@@ -34,7 +36,7 @@ const list = [
         arrows: 'U0U2-s8-blue,U2U8-s8-blue,U8U0-s8-blue',
         algs: [
             {
-                notation: "x R' U R' D2 R U' R' D2 R2",
+                notation: "x R' U R' D2 R U' R' D2 R2 x'",
                 label: "x (R' U R') D2 (R U' R') D2 R2",
             }
         ]
@@ -44,7 +46,7 @@ const list = [
         arrows: 'U2U0-s8-blue,U8U2-s8-blue,U0U8-s8-blue',
         algs: [
             {
-                notation: "x R2 D2 R U R' D2 R U' R",
+                notation: "x R2 D2 R U R' D2 R U' R x'",
                 label: "x R2 D2 (R U R') D2 (R U' R)",
             }
         ]
@@ -54,7 +56,7 @@ const list = [
         arrows: 'U0U6-s8-blue,U6U0-s8-blue,U8U2-s8-blue,U2U8-s8-blue',
         algs: [
             {
-                notation: "x' R U' R' D R U R' D' R U R' D R U' R' D'",
+                notation: "x' R U' R' D R U R' D' R U R' D R U' R' D' x",
                 label: "x' (R U' R' D) (R U R' D') (R U R' D) (R U' R' D')",
             }
         ]
@@ -214,7 +216,7 @@ const list = [
         arrows: 'U2U6-blue,U6U2-blue,U1U7-red,U7U1-red',
         algs: [
             {
-                notation: "z U' R D' R2 U R' D U' R D' R2 U R' D R'",
+                notation: "z U' R D' R2 U R' D U' R D' R2 U R' D R' z'",
                 label: "(z) U' (R D') (R2' U R' D U') (R D') (R2' U R' D R')",
             }
         ]
@@ -224,7 +226,7 @@ const list = [
         arrows: 'U0U8-blue,U8U0-blue,U1U7-red,U7U1-red',
         algs: [
             {
-                notation: "z D R' U R2 D' R D U' R' U R2 D' R U' R",
+                notation: "z D R' U R2 D' R D U' R' U R2 D' R U' R z'",
                 label: "(z) D (R' U) (R2 D' R D U') (R' U) (R2 D' R U' R)",
             }
         ]
@@ -253,7 +255,7 @@ const algsByGroup = groups.map((group) => {
     }
 })
 
-const getVisual = (alg, scheme) => {
+const getVisuals = (item, scheme = {}) => {
     const URL = 'http://cube.rider.biz/visualcube.php';
     const query = {
         fmt: 'svg',
@@ -262,18 +264,25 @@ const getVisual = (alg, scheme) => {
         view: 'plan',
         stage: 'pll',
         bg: 't',
-        case: alg.notation.split(' ').join(''),
-        sch: Object.values(scheme).join()
+        cc: 'black',
+        arw: item.arrows,
+        case: item.algs[0].notation.split(' ').join(''),
+        sch: Object.keys(scheme).sort((a, b) => {
+            const order = ['U', 'R', 'F', 'D', 'L', 'B'];
+
+            return order.indexOf(a) - order.indexOf(b);
+        }).map(e => scheme[e]).join()
     };
 
-    return URL + '?' + Object.keys(query).map((key) => {
+    return [URL + '?' + Object.keys(query).map((key) => {
         return key + '=' + query[key];
-    }).join('&');
+    }).join('&')];
 }   
 
 export {
     name,
-    algsByGroup as GROUPS,
-    list as LIST,
-    getVisual
+    key,
+    algsByGroup as groups,
+    list,
+    getVisuals
 }
