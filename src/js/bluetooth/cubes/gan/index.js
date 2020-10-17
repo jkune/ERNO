@@ -36,7 +36,7 @@ const GAN_ENCRYPTION_KEYS = [
     'NoNg7ANATFIQnARmogLBRUCs0oAYN8U5J45EQBmFADg0oJAOSlUQF0g'
 ];
 const commands = {
-    reset: new Uint8Array([0x00, 0x00, 0x24, 0x00, 0x49, 0x92, 0x24, 0x49, 0x6d, 0x92, 0xdb, 0xb6, 0x49, 0x92, 0xb6, 0x24, 0x6d, 0xdb]),
+    calibrate: new Uint8Array([0x00, 0x00, 0x24, 0x00, 0x49, 0x92, 0x24, 0x49, 0x6d, 0x92, 0xdb, 0xb6, 0x49, 0x92, 0xb6, 0x24, 0x6d, 0xdb]),
 };
 
 const filters = { namePrefix: "GAN-" };
@@ -74,8 +74,8 @@ async function getServices(server) {
         getInfo: () => {
             return _info;
         },
-        reset: async () => {
-            await cubeStatusCharacteristic.writeValue(commands.reset);
+        calibrate: async () => {
+            await cubeStatusCharacteristic.writeValue(commands.calibrate);
         },
         getBatteryLevel: async () => {
             let value = await cubeBatteryCharacteristic.readValue();

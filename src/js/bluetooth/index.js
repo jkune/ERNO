@@ -51,9 +51,9 @@ class Bluetooth {
     /**
      * Resets the cube status
      */
-    async reset() {
-        await this.services.reset();
-        console.log('reset done!');
+    async calibrate() {
+        await this.services.calibrate();
+        console.log('Calibrate done!');
     }
 
     /**
